@@ -12,7 +12,7 @@ from models.api import (
     QueryRequest,
     QueryResponse,
     UpsertRequest,
-    UpsertResponse,
+    UpsertResponse, YoutubeChannelSubscription,
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -127,6 +127,30 @@ async def query(
     response_model=DeleteResponse,
 )
 async def delete(
+    request: DeleteRequest = Body(...),
+):
+    if not (request.ids or request.filter or request.delete_all):
+        raise HTTPException(
+            status_code=400,
+            detail="One of ids, filter, or delete_all is required",
+        )
+    try:
+        success = await datastore.delete(
+            ids=request.ids,
+            filter=request.filter,
+            delete_all=request.delete_all,
+        )
+        return DeleteResponse(success=success)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/youtube/channels/subscribe",
+    response_model=YoutubeChannelSubscription,
+)
+async def subscribe_youtube_channel(
     request: DeleteRequest = Body(...),
 ):
     if not (request.ids or request.filter or request.delete_all):

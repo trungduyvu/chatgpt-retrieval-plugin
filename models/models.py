@@ -7,7 +7,7 @@ class Source(str, Enum):
     email = "email"
     file = "file"
     chat = "chat"
-
+    youtube = "youtube"
 
 class DocumentMetadata(BaseModel):
     source: Optional[Source] = None

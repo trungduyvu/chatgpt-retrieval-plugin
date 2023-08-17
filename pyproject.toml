@@ -41,6 +41,8 @@ pgvector = "^0.1.7"
 psycopg2cffi = {version = "^2.9.0", optional = true}
 loguru = "^0.7.0"
 elasticsearch = "8.8.2"
+youtube-transcript-api = "0.6.1"
+google-api-python-client = "2.95.0"
 
 [tool.poetry.scripts]
 start = "server.main:start"

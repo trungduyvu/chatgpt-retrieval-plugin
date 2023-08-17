@@ -32,3 +32,11 @@ class DeleteRequest(BaseModel):
 
 class DeleteResponse(BaseModel):
     success: bool
+
+
+class YoutubeChannelSubscription(BaseModel):
+    channel_id: str
+
+
+class ProcessNewYoutubeVideo(BaseModel):
+    success: bool

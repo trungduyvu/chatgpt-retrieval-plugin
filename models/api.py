@@ -34,9 +34,9 @@ class DeleteResponse(BaseModel):
     success: bool
 
 
-class YoutubeChannelSubscription(BaseModel):
-    channel_id: str
+class YoutubeVideoUpsertRequest(BaseModel):
+    video_url: str
 
 
-class ProcessNewYoutubeVideo(BaseModel):
+class YoutubeVideoUpsertResponse(BaseModel):
     success: bool

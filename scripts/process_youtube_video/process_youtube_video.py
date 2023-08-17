@@ -31,7 +31,7 @@ async def process_youtube_video(
     """).format(json.dumps(dict(
         url='https:www.youtube.com/watch?v={}'.format(video_id),
         transcript=concat_transcript,
-        title=
+        title='test'
     )))
     # create a document object with the id or a random id, text and metadata
     document = Document(

@@ -5,6 +5,7 @@ from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFil
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
+from youtube_transcript_api import YouTubeTranscriptApi
 
 from models.api import (
     DeleteRequest,
@@ -12,12 +13,13 @@ from models.api import (
     QueryRequest,
     QueryResponse,
     UpsertRequest,
-    UpsertResponse, YoutubeChannelSubscription,
+    UpsertResponse, YoutubeVideoUpsertRequest, YoutubeVideoUpsertResponse,
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
 from models.models import DocumentMetadata, Source
+from services.youtube import get_document_from_youtube_video
 
 bearer_scheme = HTTPBearer()
 BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
@@ -147,24 +149,23 @@ async def delete(
 
 
 @app.post(
-    "/youtube/channels/subscribe",
-    response_model=YoutubeChannelSubscription,
+    "/upsert-youtube-video",
+    response_model=YoutubeVideoUpsertResponse,
 )
-async def subscribe_youtube_channel(
-    request: DeleteRequest = Body(...),
+async def upsert_youtube_video(
+    request: YoutubeVideoUpsertRequest = Body(...),
 ):
-    if not (request.ids or request.filter or request.delete_all):
+    if not request.video_url:
         raise HTTPException(
             status_code=400,
-            detail="One of ids, filter, or delete_all is required",
+            detail="video_url is required",
         )
     try:
-        success = await datastore.delete(
-            ids=request.ids,
-            filter=request.filter,
-            delete_all=request.delete_all,
-        )
-        return DeleteResponse(success=success)
+        document = await get_document_from_youtube_video(request.video_url)
+        await datastore.upsert(documents=[document])
+
+        ids = await datastore.upsert(request.documents)
+        return UpsertResponse(ids=ids)
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")

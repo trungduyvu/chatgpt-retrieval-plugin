@@ -13,7 +13,8 @@ from models.api import (
     QueryRequest,
     QueryResponse,
     UpsertRequest,
-    UpsertResponse, YoutubeVideoUpsertRequest, YoutubeVideoUpsertResponse,
+    UpsertResponse, GetYoutubeTranscriptResponse,
+    GetYoutubeVideoTranscriptRequest,
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -124,7 +125,7 @@ async def query(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
-@app.delete(
+@app.get(
     "/delete",
     response_model=DeleteResponse,
 )
@@ -148,24 +149,16 @@ async def delete(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
-@app.post(
-    "/upsert-youtube-video",
-    response_model=YoutubeVideoUpsertResponse,
-)
-async def upsert_youtube_video(
-    request: YoutubeVideoUpsertRequest = Body(...),
-):
-    if not request.video_url:
+@app.get("/youtube-transcript")
+async def get_youtube_transcript(video_id: str):
+    if not video_id:
         raise HTTPException(
             status_code=400,
-            detail="video_url is required",
+            detail="video_id is required",
         )
     try:
-        document = await get_document_from_youtube_video(request.video_url)
-        await datastore.upsert(documents=[document])
-
-        ids = await datastore.upsert(request.documents)
-        return UpsertResponse(ids=ids)
+        document = YouTubeTranscriptApi.get_transcript(video_id)
+        return GetYoutubeTranscriptResponse(transcript=document)
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")

@@ -34,9 +34,13 @@ class DeleteResponse(BaseModel):
     success: bool
 
 
-class YoutubeVideoUpsertRequest(BaseModel):
-    video_url: str
+class GetYoutubeVideoTranscriptRequest(BaseModel):
+    video_id: str
 
+class TranscriptItem(BaseModel):
+    duration: int
+    start: float
+    text: str
 
-class YoutubeVideoUpsertResponse(BaseModel):
-    success: bool
+class GetYoutubeTranscriptResponse(BaseModel):
+    transcript: List[TranscriptItem]

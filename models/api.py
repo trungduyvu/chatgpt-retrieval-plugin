@@ -37,10 +37,15 @@ class DeleteResponse(BaseModel):
 class GetYoutubeVideoTranscriptRequest(BaseModel):
     video_id: str
 
+
 class TranscriptItem(BaseModel):
     duration: int
     start: float
     text: str
 
+
 class GetYoutubeTranscriptResponse(BaseModel):
     transcript: List[TranscriptItem]
+    topics: list[str]
+    topic_summaries: list[str]
+    final_summary: str

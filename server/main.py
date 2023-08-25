@@ -20,7 +20,8 @@ from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
 from models.models import DocumentMetadata, Source
-from services.youtube import get_document_from_youtube_video
+from services.youtube import get_document_from_youtube_video, summarize_youtube_video_transcript
+
 
 bearer_scheme = HTTPBearer()
 BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
@@ -150,7 +151,7 @@ async def delete(
 
 
 @app.get("/youtube-transcript")
-async def get_youtube_transcript(video_id: str):
+async def get_youtube_transcript(video_id: str, title: str, channel: str):
     if not video_id:
         raise HTTPException(
             status_code=400,
@@ -158,7 +159,10 @@ async def get_youtube_transcript(video_id: str):
         )
     try:
         document = YouTubeTranscriptApi.get_transcript(video_id)
-        return GetYoutubeTranscriptResponse(transcript=document)
+        summary_output = await summarize_youtube_video_transcript(document, title, channel)
+        return GetYoutubeTranscriptResponse(transcript=document, topics=summary_output['titles'],
+                                            topic_summaries=summary_output['summaries'],
+                                            final_summary=summary_output['final_summary'])
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")

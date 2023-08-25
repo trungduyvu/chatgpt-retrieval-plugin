@@ -102,11 +102,10 @@ def parse_title_summary_results(results):
     return out
 
 
-async def summarize_stage_1(chunks_text, title, channel):
+async def summarize_stage_1(chunks_text):
     # Prompt to get title and summary for each chunk
     map_prompt_template = """You are an expert copy writer. Your task is to give the following text an informative title. 
-    Then, on a new line, write a 75-100 word summary of the following snippet of transcript from a youtube video titled 
-    """ + title + """ by channel """ + channel + """.:
+    Then, on a new line, write a 75-100 word summary of the following snippet of transcript from a youtube video
   {text}
 
   Return your answer in the following format:
@@ -301,7 +300,7 @@ def summarize_stage_2(stage_1_outputs, topics, title, channel, summary_num_words
     return out
 
 
-async def summarize_youtube_video_transcript(transcripts, title, channel):
+async def summarize_youtube_video_transcript(transcripts):
     # merge transcript into one string
     transcript = ' '.join([v['text'] for v in transcripts])
     # # split by words
@@ -312,7 +311,7 @@ async def summarize_youtube_video_transcript(transcripts, title, channel):
     text_chunks = get_text_chunks(transcript, 200)
 
     # stage 1
-    stage_1_outputs = await summarize_stage_1(text_chunks, title, channel)
+    stage_1_outputs = await summarize_stage_1(text_chunks)
     stage_1_summaries = [e['summary'] for e in stage_1_outputs]
     stage_1_titles = [e['title'] for e in stage_1_outputs]
     num_1_chunks = len(stage_1_summaries)

@@ -150,15 +150,15 @@ async def delete(
 
 
 @app.get("/youtube-transcript")
-async def get_youtube_transcript(video_id: str, title: str, channel: str, summarize: bool = False):
+async def get_youtube_transcript(video_id: str, title: str = None, channel: str = None, summarize: bool = False):
     if not video_id:
         raise HTTPException(
             status_code=400,
             detail="video_id is required",
         )
     try:
-        document = YouTubeTranscriptApi.get_transcript(video_id)
-        if (summarize):
+        document = YouTubeTranscriptApi.get_transcript(video_id, ('en-US', 'en', 'en-GB'))
+        if summarize:
             summary_output = await summarize_youtube_video_transcript(document, title, channel)
             return GetYoutubeTranscriptResponse(transcript=document, topics=summary_output['titles'],
                                                 topic_summaries=summary_output['summaries'],

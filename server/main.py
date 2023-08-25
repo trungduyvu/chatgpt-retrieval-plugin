@@ -22,7 +22,6 @@ from services.file import get_document_from_file
 from models.models import DocumentMetadata, Source
 from services.youtube import get_document_from_youtube_video, summarize_youtube_video_transcript
 
-
 bearer_scheme = HTTPBearer()
 BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
 assert BEARER_TOKEN is not None
@@ -53,8 +52,8 @@ app.mount("/sub", sub_app)
     response_model=UpsertResponse,
 )
 async def upsert_file(
-    file: UploadFile = File(...),
-    metadata: Optional[str] = Form(None),
+        file: UploadFile = File(...),
+        metadata: Optional[str] = Form(None),
 ):
     try:
         metadata_obj = (
@@ -80,7 +79,7 @@ async def upsert_file(
     response_model=UpsertResponse,
 )
 async def upsert(
-    request: UpsertRequest = Body(...),
+        request: UpsertRequest = Body(...),
 ):
     try:
         ids = await datastore.upsert(request.documents)
@@ -95,7 +94,7 @@ async def upsert(
     response_model=QueryResponse,
 )
 async def query_main(
-    request: QueryRequest = Body(...),
+        request: QueryRequest = Body(...),
 ):
     try:
         results = await datastore.query(
@@ -114,7 +113,7 @@ async def query_main(
     description="Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don't do this often. Split queries if ResponseTooLargeError occurs.",
 )
 async def query(
-    request: QueryRequest = Body(...),
+        request: QueryRequest = Body(...),
 ):
     try:
         results = await datastore.query(
@@ -131,7 +130,7 @@ async def query(
     response_model=DeleteResponse,
 )
 async def delete(
-    request: DeleteRequest = Body(...),
+        request: DeleteRequest = Body(...),
 ):
     if not (request.ids or request.filter or request.delete_all):
         raise HTTPException(
@@ -151,7 +150,7 @@ async def delete(
 
 
 @app.get("/youtube-transcript")
-async def get_youtube_transcript(video_id: str, title: str, channel: str):
+async def get_youtube_transcript(video_id: str, title: str, channel: str, summarize: bool = False):
     if not video_id:
         raise HTTPException(
             status_code=400,
@@ -159,10 +158,13 @@ async def get_youtube_transcript(video_id: str, title: str, channel: str):
         )
     try:
         document = YouTubeTranscriptApi.get_transcript(video_id)
-        summary_output = await summarize_youtube_video_transcript(document, title, channel)
-        return GetYoutubeTranscriptResponse(transcript=document, topics=summary_output['titles'],
-                                            topic_summaries=summary_output['summaries'],
-                                            final_summary=summary_output['final_summary'])
+        if (summarize):
+            summary_output = await summarize_youtube_video_transcript(document, title, channel)
+            return GetYoutubeTranscriptResponse(transcript=document, topics=summary_output['titles'],
+                                                topic_summaries=summary_output['summaries'],
+                                                final_summary=summary_output['final_summary'])
+        else:
+            return GetYoutubeTranscriptResponse(transcript=document, topics=[], topic_summaries=[], final_summary='')
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")

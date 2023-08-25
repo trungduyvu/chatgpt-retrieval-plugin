@@ -200,7 +200,7 @@ def get_topics(title_similarity, num_topics=8, bonus_constant=0.25, min_size=3):
     }
 
 
-def summarize_stage_2(stage_1_outputs, topics, title, channel, summary_num_words=400):
+def summarize_stage_2(stage_1_outputs, topics, summary_num_words=400):
     s = time.perf_counter()
 
     # Prompt that passes in all the titles of a topic, and asks for an overall title of the topic
@@ -225,7 +225,6 @@ def summarize_stage_2(stage_1_outputs, topics, title, channel, summary_num_words
 
     combine_prompt_template = """You are an expert copy writer. Your task is to write a 
     """ + str(summary_num_words) + """-word summary of a youtube video from summaries of its main topics, delimited by ```. 
-    The title of the video is """ + title + """ by channel """ + channel + """.:
     Rules:
     - Remove irrelevant information:
     - Include a main takeaways section using bullet points to list information
@@ -337,7 +336,7 @@ async def summarize_youtube_video_transcript(transcripts):
     chunk_topics = topics_out['chunk_topics']
     topics = topics_out['topics']
 
-    stage_2_outputs = summarize_stage_2(stage_1_outputs, topics,  title, channel, summary_num_words=250)
+    stage_2_outputs = summarize_stage_2(stage_1_outputs, topics, summary_num_words=250)
     stage_2_titles = [e['title'] for e in stage_2_outputs['stage_2_outputs']]
     stage_2_summaries = [e['summary'] for e in stage_2_outputs['stage_2_outputs']]
     final_summary = stage_2_outputs['final_summary']

@@ -51,5 +51,4 @@ class TopicSummary(BaseModel):
 
 class GetYoutubeTranscriptResponse(BaseModel):
     transcript: List[TranscriptItem]
-    topics: list[TopicSummary]
     final_summary: str

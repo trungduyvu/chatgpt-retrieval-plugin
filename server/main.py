@@ -162,7 +162,6 @@ async def get_youtube_transcript(video_id: str, summarize: bool = False):
         if summarize:
             summary_output = await summarize_youtube_video_transcript(document)
             return GetYoutubeTranscriptResponse(transcript=document,
-                                                topics=zip(summary_output['topics'], summary_output['topic_summaries']),
                                                 final_summary=summary_output['final_summary'])
         else:
             return GetYoutubeTranscriptResponse(transcript=document, topics=[], final_summary='')

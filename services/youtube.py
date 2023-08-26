@@ -200,7 +200,7 @@ def get_topics(title_similarity, num_topics=8, bonus_constant=0.25, min_size=3):
     }
 
 
-def summarize_stage_2(stage_1_outputs, topics, summary_num_words=400):
+async def summarize_stage_2(stage_1_outputs, topics, summary_num_words=400):
     s = time.perf_counter()
 
     # Prompt that passes in all the titles of a topic, and asks for an overall title of the topic
@@ -226,11 +226,10 @@ def summarize_stage_2(stage_1_outputs, topics, summary_num_words=400):
     combine_prompt_template = """You are an expert copy writer. Your task is to write a 
     """ + str(summary_num_words) + """-word summary of a youtube video from summaries of its main topics, delimited by ```. 
     Rules:
-    - Remove irrelevant information:
-    - Include a main takeaways section using bullet points to list information
+    - Return your response markdown with bullet points which covers the key points of the text.
+    - Remove irrelevant information
     - Use straight forward language
     - Return only the summary, nothing else
-    - start with "In this video of <channel>, ..."
   ```
   {text}
   ```
@@ -275,15 +274,15 @@ def summarize_stage_2(stage_1_outputs, topics, summary_num_words=400):
     # Remove spaces at start or end of each title
     titles = [t.strip() for t in titles]
 
-    reduce_llm = ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo-16k')
+    reduce_llm = ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo')
 
     # Run the map-reduce chain
     docs = [Document(page_content=t) for t in topics_summary_concat]
     chain = load_summarize_chain(chain_type="map_reduce", map_prompt=map_prompt, combine_prompt=combine_prompt,
                                  return_intermediate_steps=True,
-                                 llm=llm, reduce_llm=reduce_llm)
+                                 llm=llm, reduce_llm=reduce_llm,)
 
-    output = chain({"input_documents": docs}, return_only_outputs=True)
+    output = await chain.acall({"input_documents": docs}, return_only_outputs=True)
     summaries = output['intermediate_steps']
     stage_2_outputs = [{'title': t, 'summary': s} for t, s in zip(titles, summaries)]
     final_summary = output['output_text']
@@ -318,7 +317,6 @@ async def summarize_youtube_video_transcript(transcripts):
     openai_embed = OpenAIEmbeddings()
 
     summary_embeds = np.array(openai_embed.embed_documents(stage_1_summaries))
-    title_embeds = np.array(openai_embed.embed_documents(stage_1_titles))
 
     # Get similarity matrix between the embeddings of the chunk summaries
     summary_similarity_matrix = np.zeros((num_1_chunks, num_1_chunks))
@@ -336,7 +334,7 @@ async def summarize_youtube_video_transcript(transcripts):
     chunk_topics = topics_out['chunk_topics']
     topics = topics_out['topics']
 
-    stage_2_outputs = summarize_stage_2(stage_1_outputs, topics, summary_num_words=250)
+    stage_2_outputs = await summarize_stage_2(stage_1_outputs, topics, summary_num_words=250)
     stage_2_titles = [e['title'] for e in stage_2_outputs['stage_2_outputs']]
     stage_2_summaries = [e['summary'] for e in stage_2_outputs['stage_2_outputs']]
     final_summary = stage_2_outputs['final_summary']

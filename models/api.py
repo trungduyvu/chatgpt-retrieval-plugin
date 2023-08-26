@@ -44,8 +44,12 @@ class TranscriptItem(BaseModel):
     text: str
 
 
+class TopicSummary(BaseModel):
+    topic: str
+    summary: str
+
+
 class GetYoutubeTranscriptResponse(BaseModel):
     transcript: List[TranscriptItem]
-    topics: list[str]
-    topic_summaries: list[str]
+    topics: list[TopicSummary]
     final_summary: str

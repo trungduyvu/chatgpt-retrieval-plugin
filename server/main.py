@@ -161,11 +161,11 @@ async def get_youtube_transcript(video_id: str, summarize: bool = False):
         document = YouTubeTranscriptApi.get_transcript(video_id, ('en-US', 'en', 'en-GB'))
         if summarize:
             summary_output = await summarize_youtube_video_transcript(document)
-            return GetYoutubeTranscriptResponse(transcript=document, topics=summary_output['titles'],
-                                                topic_summaries=summary_output['summaries'],
+            return GetYoutubeTranscriptResponse(transcript=document,
+                                                topics=zip(summary_output['topics'], summary_output['topic_summaries']),
                                                 final_summary=summary_output['final_summary'])
         else:
-            return GetYoutubeTranscriptResponse(transcript=document, topics=[], topic_summaries=[], final_summary='')
+            return GetYoutubeTranscriptResponse(transcript=document, topics=[], final_summary='')
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
